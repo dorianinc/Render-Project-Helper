@@ -1,11 +1,10 @@
 require("dotenv").config();
 const axios = require("axios");
 
-const databaseName = "my-db"; // this will be the name of your new database
-const databaseKey = "DATABASE_URL"; // this will be the name of the key in your env
+const databaseName = null; // this will be the name of your new database
+const databaseKey = null; // this will be the name of the key in your env
 const baseUrl = "https://api.render.com/v1";
 const key = process.env.API_KEY;
-
 const options = {
   headers: {
     accept: "application/json",
