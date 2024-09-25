@@ -15,6 +15,9 @@ const options = {
   },
 };
 
+// Owner --------------------------------------------------------------------------------------------
+
+
 const fetchOwner = async () => {
   try {
     const response = await axios.get(`${baseUrl}/owners?limit=1`, options);
@@ -182,7 +185,7 @@ const updateEnvVariable = async (serviceId, envKey, envValue) => {
   }
 };
 
-// Helper --------------------------------------------------------------------------------------------
+// Helpers --------------------------------------------------------------------------------------------
 
 const isEmpty = (obj) => {
   return Object.values(obj).length === 0;
