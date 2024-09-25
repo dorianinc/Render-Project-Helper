@@ -3,7 +3,7 @@ const readline = require("readline");
 const axios = require("axios");
 
 const databaseName = "my-db"; // this will be the name of your new database
-const databaseKey = 'DATABASE_URL'; // this will be the name of the key in your env
+const databaseKey = "DATABASE_URL"; // this will be the name of the key in your env
 const baseUrl = "https://api.render.com/v1";
 const key = process.env.API_KEY;
 
@@ -239,7 +239,7 @@ const showMenu = async () => {
       case "1":
         console.log(chalk.green("\nRunning Rebuild Script..."));
         await runScript();
-        rl.close();
+        showMenu();
         break;
       case "2":
         console.log(chalk.green("Fetching Database Details..."));
@@ -247,16 +247,15 @@ const showMenu = async () => {
         let connectionInfo = await fetchConnectionInfo(database.id);
         console.log(chalk.cyan.bold("🖥️  Database: "), database);
         console.log(chalk.cyan.bold("🖥️  Connection Info: "), connectionInfo);
-        rl.close();
+        showMenu();
         break;
       case "3":
         console.log(chalk.green("Fetching Service Details..."));
         let services = await fetchServices();
         console.log(chalk.cyan.bold("🖥️  Services: "), services);
-        rl.close();
+        showMenu();
         break;
       case "4":
-        console.log(chalk.red("Exiting program..."));
         rl.close();
         break;
       default:
@@ -269,10 +268,8 @@ const showMenu = async () => {
 rl.on("close", async () => {
   const chalk = (await import("chalk")).default;
 
-  console.log(chalk.bgRed.white.bold("\nExiting program."));
-  setTimeout(() => {
-    process.exit(0);
-  }, 5000);
+  console.log(chalk.bgRed.white.bold("\nExiting program..."));
+  process.exit(0);
 });
 
 showMenu();
