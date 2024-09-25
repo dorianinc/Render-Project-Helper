@@ -28,7 +28,7 @@ A simple script to help keep Render projects up and running made using Render's 
    REGION=your_region_here             # The region you use for your applications (e.g., oregon)
    
 7. Run the script:  
-   `node index.js`
+   `npm start`
 
 ## Note
 
