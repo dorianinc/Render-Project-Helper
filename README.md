@@ -2,6 +2,8 @@
 
 A simple script to help keep Render projects up and running made using Render's official API.
 
+> ⚠️ **Warning:** This script only works if you use the **internal database URL** from your Render database. Make sure to configure your database accordingly for this script to function properly.
+
 ## Steps to Get Started
 
 1. Clone the project:  
