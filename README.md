@@ -23,4 +23,4 @@ A simple script to help keep Render projects up and running.
 
 ## Note
 
-I recommend keeping the project in one location and simply save the terminal commands. This way, you can quickly run it whenever you open the terminal again.
+I recommend keeping the project in one location and simply saving the terminal command to run it. This way, you can quickly run it whenever you open the terminal again.
