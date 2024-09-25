@@ -2,6 +2,7 @@ require("dotenv").config();
 const axios = require("axios");
 
 const databaseName = "my-db"; // this will be the name of your new db
+const databaseKey = "DATABASE_URL" // this will be the name of the key in your env
 const baseUrl = "https://api.render.com/v1";
 const key = process.env.API_KEY;
 
@@ -166,7 +167,7 @@ const rebuildDatabase = async () => {
     for (const service of services) {
       await updateEnvVariable(
         service.id,
-        "DATABASE_URL",
+        databaseKey,
         newDb.internalDatabaseUrl
       );
       await deployService(service.id);
