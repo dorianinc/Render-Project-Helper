@@ -1,9 +1,9 @@
 require("dotenv").config();
 const axios = require("axios");
 
-const databaseName = "my-db"; // this will be the name of your new db
-const databaseKey = "DATABASE_URL" // this will be the name of the key in your env
-const baseUrl = "https://api.render.com/v1";
+const databaseName = null;
+const databaseKey = null; // this will be the name of the key in your env
+const baseUrl = null;
 const key = process.env.API_KEY;
 
 const options = {
@@ -178,5 +178,33 @@ const rebuildDatabase = async () => {
   }
 };
 
-// Start the rebuild process
-rebuildDatabase();
+const runScript = async () => {
+  const chalk = (await import('chalk')).default;
+  console.log(chalk.bold.blue("||| Render Database Rebuilder |||\n"));
+  
+  let missing = [];
+
+  if (!databaseName) {
+    missing.push(chalk.red("databaseName"));
+  }
+  if (!databaseKey) {
+    missing.push(chalk.red("databaseKey"));
+  }
+  if (!baseUrl) {
+    missing.push(chalk.red("baseUrl"));
+  }
+  if (!key) {
+    missing.push(chalk.red("key"));
+  }
+
+  if (missing.length) {
+    console.log(chalk.yellow(`The following variables still don't have a value: ${missing.join(", ")}`));
+    console.log(chalk.yellow("Please add them for the script to run"));
+    return;
+  }
+
+  console.log(chalk.green("All variables are set. Rebuilding database...\n"));
+  rebuildDatabase();
+};
+
+runScript();
