@@ -5,7 +5,7 @@ A simple script to help keep Render projects up and running.
 ## Steps to Get Started
 
 1. Clone the project:  
-   `git clone <your-repo-url>`
+   `git clone <repo-url>`
 
 2. Go into the project directory:  
    `cd <your-project-directory>`
@@ -20,6 +20,9 @@ A simple script to help keep Render projects up and running.
 
 6. Add the API key to .env:  
    `API_KEY=potato`
+
+7. run the script:  
+   `node index.js`
 
 ## Note
 
