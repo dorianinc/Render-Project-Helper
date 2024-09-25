@@ -1,11 +1,11 @@
 require("dotenv").config();
+const readline = require("readline");
 const axios = require("axios");
 
 const databaseName = null; // this will be the name of your new database
 const databaseKey = null; // this will be the name of the key in your env
 const baseUrl = "https://api.render.com/v1";
 const key = process.env.API_KEY;
-
 
 const options = {
   headers: {
@@ -28,15 +28,14 @@ const fetchOwner = async () => {
   }
 };
 
+// Service --------------------------------------------------------------------------------------------
+
 const fetchServices = async () => {
   try {
     const response = await axios.get(`${baseUrl}/services`, options);
-    const services = response.data
-      .filter((item) => item.service.type === "web_service")
-      .map((item) => ({
-        name: item.service.name,
-        id: item.service.id,
-      }));
+    const services = response.data.filter(
+      (item) => item.service.type === "web_service"
+    );
 
     return services.filter((service) => service !== null);
   } catch (error) {
@@ -44,6 +43,26 @@ const fetchServices = async () => {
     throw error;
   }
 };
+
+const deployService = async (serviceId) => {
+  const body = {
+    clearCache: "do_not_clear",
+  };
+
+  try {
+    const response = await axios.post(
+      `${baseUrl}/services/${serviceId}/deploys`,
+      body,
+      options
+    );
+    return response.data;
+  } catch (error) {
+    console.error(`Error deploying service ID ${serviceId}:`, error);
+    throw error;
+  }
+};
+
+// Database --------------------------------------------------------------------------------------------
 
 const fetchDatabase = async () => {
   try {
@@ -102,49 +121,6 @@ const deleteDatabase = async (databaseId) => {
   }
 };
 
-const updateEnvVariable = async (serviceId, envKey, envValue) => {
-  const body = {
-    value: envValue,
-  };
-
-  try {
-    const response = await axios.put(
-      `${baseUrl}/services/${serviceId}/env-vars/${envKey}`,
-      body,
-      options
-    );
-    return response.data;
-  } catch (error) {
-    console.error(
-      `Error updating environment variable for service ID ${serviceId}:`,
-      error
-    );
-    throw error;
-  }
-};
-
-const deployService = async (serviceId) => {
-  const body = {
-    clearCache: "do_not_clear",
-  };
-
-  try {
-    const response = await axios.post(
-      `${baseUrl}/services/${serviceId}/deploys`,
-      body,
-      options
-    );
-    return response.data;
-  } catch (error) {
-    console.error(`Error deploying service ID ${serviceId}:`, error);
-    throw error;
-  }
-};
-
-const isEmpty = (obj) => {
-  return Object.values(obj).length === 0;
-};
-
 const rebuildDatabase = async () => {
   console.log("Rebuilding database...");
   try {
@@ -179,10 +155,39 @@ const rebuildDatabase = async () => {
   }
 };
 
+// ENV --------------------------------------------------------------------------------------------
+
+const updateEnvVariable = async (serviceId, envKey, envValue) => {
+  const body = {
+    value: envValue,
+  };
+
+  try {
+    const response = await axios.put(
+      `${baseUrl}/services/${serviceId}/env-vars/${envKey}`,
+      body,
+      options
+    );
+    return response.data;
+  } catch (error) {
+    console.error(
+      `Error updating environment variable for service ID ${serviceId}:`,
+      error
+    );
+    throw error;
+  }
+};
+
+// Helper --------------------------------------------------------------------------------------------
+
+const isEmpty = (obj) => {
+  return Object.values(obj).length === 0;
+};
+
+// Etc --------------------------------------------------------------------------------------------
+
 const runScript = async () => {
-  const chalk = (await import('chalk')).default;
-  console.log(chalk.bold.cyan("||| Render Database Rebuilder |||\n"));
-  
+  const chalk = (await import("chalk")).default;
   let missing = [];
 
   if (!databaseName) {
@@ -199,7 +204,13 @@ const runScript = async () => {
   }
 
   if (missing.length) {
-    console.log(chalk.yellow(`The following variables still don't have a value: ${missing.join(", ")}`));
+    console.log(
+      chalk.yellow(
+        `The following variables still don't have a value: ${missing.join(
+          ", "
+        )}`
+      )
+    );
     console.log(chalk.yellow("Please add them for the script to run..."));
     return;
   }
@@ -208,4 +219,60 @@ const runScript = async () => {
   rebuildDatabase();
 };
 
-runScript();
+// User Interface --------------------------------------------------------------------------------------------
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+const showMenu = async () => {
+  const chalk = (await import("chalk")).default;
+
+  console.log(chalk.cyan.bold("\n1. Rebuild Database"));
+  console.log(chalk.cyan.bold("2. View Database Details"));
+  console.log(chalk.cyan.bold("3. View Service Details"));
+  console.log(chalk.cyan.bold("4. Exit"));
+
+  rl.question(chalk.yellow("Choose an option: "), async (answer) => {
+    switch (answer) {
+      case "1":
+        console.log(chalk.green("\nRunning Rebuild Script..."));
+        await runScript();
+        rl.close();
+        break;
+      case "2":
+        console.log(chalk.green("Fetching Database Details..."));
+        let database = await fetchDatabase();
+        let connectionInfo = await fetchConnectionInfo(database.id);
+        console.log(chalk.cyan.bold("🖥️  Database: "), database);
+        console.log(chalk.cyan.bold("🖥️  Connection Info: "), connectionInfo);
+        rl.close();
+        break;
+      case "3":
+        console.log(chalk.green("Fetching Service Details..."));
+        let services = await fetchServices();
+        console.log(chalk.cyan.bold("🖥️  Services: "), services);
+        rl.close();
+        break;
+      case "4":
+        console.log(chalk.red("Exiting program..."));
+        rl.close();
+        break;
+      default:
+        console.log(chalk.red("Invalid option. Please try again."));
+        rl.close();
+    }
+  });
+};
+
+rl.on("close", async () => {
+  const chalk = (await import("chalk")).default;
+
+  console.log(chalk.bgRed.white.bold("\nExiting program."));
+  setTimeout(() => {
+    process.exit(0);
+  }, 5000);
+});
+
+showMenu();
