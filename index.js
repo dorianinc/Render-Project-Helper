@@ -1,7 +1,7 @@
 require("dotenv").config();
 const axios = require("axios");
 
-const baseUrl = process.env.RENDER_API_URL;
+const baseUrl = "https://api.render.com/v1"
 const key = process.env.API_KEY;
 
 const options = {
