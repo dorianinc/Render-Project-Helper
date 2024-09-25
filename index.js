@@ -1,7 +1,7 @@
 require("dotenv").config();
 const axios = require("axios");
 
-const baseUrl = "https://api.render.com/v1"
+const baseUrl = "https://api.render.com/v1";
 const key = process.env.API_KEY;
 
 const options = {
@@ -204,8 +204,8 @@ const rebuildDatabase = async () => {
         newDb.internalDatabaseUrl
       );
       await deployService(service.id);
-      console.log("done!");
     }
+    console.log("done!");
   } catch (error) {
     console.error("Error during database rebuild:", error);
   }
