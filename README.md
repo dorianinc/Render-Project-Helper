@@ -1,6 +1,8 @@
 # Render Project Helper
 
-A simple script to help keep Render projects up and running.
+A simple script to help keep Render projects up and running made using Render's official API.
+
+> ⚠️ **Warning:** This script only works if you use the **internal database URL** from your Render database. Make sure to configure your database accordingly for this script to function properly.
 
 ## Steps to Get Started
 
@@ -21,9 +23,13 @@ A simple script to help keep Render projects up and running.
 6. Add the API key to .env:  
    `API_KEY=potato`
 
-7. run the script:  
+7. Run the script:  
    `node index.js`
 
 ## Note
 
 I recommend keeping the project in one location and simply saving the terminal command to run it. This way, you can quickly run it whenever you open the terminal again.
+
+## Resources
+
+- [Render API Documentation](https://api-docs.render.com/reference/introduction)
