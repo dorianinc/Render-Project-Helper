@@ -216,7 +216,7 @@ const runScript = async () => {
   }
 
   console.log(chalk.green("All variables are set. Rebuilding database...\n"));
-  // rebuildDatabase();
+  rebuildDatabase();
 };
 
 // User Interface --------------------------------------------------------------------------------------------
