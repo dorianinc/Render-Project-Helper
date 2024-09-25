@@ -18,7 +18,7 @@ A simple script to help keep Render projects up and running made using Render's 
 4. Create a .env file:  
    `touch .env`
 
-6. Click on any of your web service applications, click on settings and get service region.
+6. On Render, click on any of your web service applications, click on settings and get service region.
 
 7. Go to account settings in Render and create an API key.
 
