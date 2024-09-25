@@ -1,8 +1,8 @@
 require("dotenv").config();
 const axios = require("axios");
 
-const databaseName = null; // this will be the name of your new database
-const databaseKey = null; // this will be the name of the key in your env
+const databaseName = "my-db"; // this will be the name of your new database
+const databaseKey = "DATABASE_URL"; // this will be the name of the key in your env
 const baseUrl = "https://api.render.com/v1";
 const key = process.env.API_KEY;
 
@@ -32,9 +32,9 @@ const fetchOwner = async () => {
 const fetchServices = async () => {
   try {
     const response = await axios.get(`${baseUrl}/services`, options);
-    const services = response.data.filter(
-      (item) => item.service.type === "web_service"
-    );
+    const services = response.data
+      .filter((item) => item.service.type === "web_service")
+      .map((item) => item.service);
 
     return services.filter((service) => service !== null);
   } catch (error) {
