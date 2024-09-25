@@ -1,6 +1,7 @@
 require("dotenv").config();
 const axios = require("axios");
 
+const databaseName = "my-db"; // this will be the name of your new db
 const baseUrl = "https://api.render.com/v1";
 const key = process.env.API_KEY;
 
@@ -30,47 +31,15 @@ const fetchServices = async () => {
     const response = await axios.get(`${baseUrl}/services`, options);
     const services = response.data
       .filter((item) => item.service.type === "web_service")
-      .map((item) => item.service);
+      .map((item) => ({
+        name: item.service.name,
+        id: item.service.id,
+      }));
 
-    const detailedServices = await Promise.all(
-      services.map(async ({ name, id, type }) => {
-        try {
-          const details = await fetchEventDetails(id);
-          return { name, id, type, details };
-        } catch (error) {
-          console.error(`Error fetching details for service ID ${id}:`, error);
-          return null; // Return null for services that fail to fetch details
-        }
-      })
-    );
-
-    return detailedServices.filter((service) => service !== null); // Filter out failed services
+    return services.filter((service) => service !== null);
   } catch (error) {
     console.error("Error fetching services:", error);
     throw error; // Optionally re-throw the error after logging
-  }
-};
-
-const fetchEventDetails = async (serviceId) => {
-  try {
-    const response = await axios.get(
-      `${baseUrl}/services/${serviceId}/events`,
-      options
-    );
-    const latestDetails = response.data.reduce((obj, item) => {
-      const event = item.event;
-      if (event.type === "deploy_ended") {
-        obj = { ...event.details, lastDeployed: event.timestamp };
-      }
-      return obj;
-    }, {});
-    return latestDetails;
-  } catch (error) {
-    console.error(
-      `Error fetching event details for service ID ${serviceId}:`,
-      error
-    );
-    throw error; // Re-throw the error for handling upstream
   }
 };
 
@@ -84,7 +53,7 @@ const fetchDatabase = async () => {
   }
 };
 
-const fetchDatabaseDetails = async (databaseId) => {
+const fetchConnectionInfo = async (databaseId) => {
   try {
     const response = await axios.get(
       `${baseUrl}/postgres/${databaseId}/connection-info`,
@@ -100,12 +69,12 @@ const fetchDatabaseDetails = async (databaseId) => {
   }
 };
 
-const createDatabase = async (dbName, ownerId) => {
+const createDatabase = async (ownerId) => {
   const body = {
     enableHighAvailability: false,
     plan: "free",
     version: "16",
-    name: dbName,
+    name: databaseName,
     ownerId,
   };
 
@@ -189,12 +158,9 @@ const rebuildDatabase = async () => {
       }
     }
 
-    const { name, status, id, createdAt } = await createDatabase(
-      "my-db",
-      owner.id
-    );
+    const { name, status, id, createdAt } = await createDatabase(owner.id);
     const newDb = { name, status, id, createdAt };
-    const { internalConnectionString } = await fetchDatabaseDetails(id);
+    const { internalConnectionString } = await fetchConnectionInfo(id);
     newDb.internalDatabaseUrl = internalConnectionString;
 
     for (const service of services) {
