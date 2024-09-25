@@ -1,8 +1,9 @@
 require("dotenv").config();
 const axios = require("axios");
 
-const databaseName = null; // this will be the name of your new database
-const databaseKey = null; // this will be the name of the key in your env
+const databaseName = null; // name of your new database
+const databaseKey = null; // name of the key in your env
+const region = null;  // region you use for all your applications
 const baseUrl = "https://api.render.com/v1";
 const key = process.env.API_KEY;
 const options = {
@@ -95,6 +96,7 @@ const createDatabase = async (ownerId) => {
     version: "16",
     name: databaseName,
     ownerId,
+    region
   };
 
   try {
@@ -195,6 +197,9 @@ const validateVariables = async () => {
   if (!databaseKey) {
     missing.push(chalk.red("databaseKey"));
   }
+  if (!region) {
+    missing.push(chalk.red("region"));
+  }
   if (!baseUrl) {
     missing.push(chalk.red("baseUrl"));
   }
@@ -222,5 +227,6 @@ module.exports = {
   fetchServices,
   fetchDatabase,
   fetchConnectionInfo,
+  fetchOwner,
   rebuildDatabase,
 };

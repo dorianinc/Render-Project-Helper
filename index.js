@@ -3,9 +3,9 @@ const {
   fetchServices,
   fetchDatabase,
   fetchConnectionInfo,
+  fetchOwner,
   rebuildDatabase,
 } = require("./databaseManager");
-
 
 // User Interface --------------------------------------------------------------------------------------------
 
@@ -20,7 +20,8 @@ const showMenu = async () => {
   console.log(chalk.cyan.bold("\n1. Rebuild Database"));
   console.log(chalk.cyan.bold("2. View Database Details"));
   console.log(chalk.cyan.bold("3. View Service Details"));
-  console.log(chalk.cyan.bold("4. Exit"));
+  console.log(chalk.cyan.bold("4. View Owner Details"));
+  console.log(chalk.cyan.bold("5. Exit"));
 
   rl.question(chalk.yellow("Choose an option: "), async (answer) => {
     switch (answer) {
@@ -44,6 +45,12 @@ const showMenu = async () => {
         showMenu();
         break;
       case "4":
+        console.log(chalk.green("Fetching Service Details..."));
+        let owner = await fetchOwner();
+        console.log(chalk.cyan.bold("🖥️  Owner: "), owner);
+        showMenu();
+        break;
+      case "5":
         rl.close();
         break;
       default:
