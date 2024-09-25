@@ -24,7 +24,7 @@ const fetchOwner = async () => {
     }
   } catch (error) {
     console.error("Error fetching owner:", error);
-    throw error; // Optionally re-throw the error after logging
+    throw error;
   }
 };
 
@@ -41,7 +41,7 @@ const fetchServices = async () => {
     return services.filter((service) => service !== null);
   } catch (error) {
     console.error("Error fetching services:", error);
-    throw error; // Optionally re-throw the error after logging
+    throw error;
   }
 };
 
@@ -51,7 +51,7 @@ const fetchDatabase = async () => {
     return response.data.length ? response.data[0].postgres : {};
   } catch (error) {
     console.error("Error fetching database:", error);
-    throw error; // Re-throw the error for handling upstream
+    throw error;
   }
 };
 
@@ -67,7 +67,7 @@ const fetchConnectionInfo = async (databaseId) => {
       `Error fetching details for database ID ${databaseId}:`,
       error
     );
-    throw error; // Re-throw the error for handling upstream
+    throw error;
   }
 };
 
@@ -85,7 +85,7 @@ const createDatabase = async (ownerId) => {
     return response.data;
   } catch (error) {
     console.error("Error creating database:", error);
-    throw error; // Re-throw the error for handling upstream
+    throw error;
   }
 };
 
@@ -98,7 +98,7 @@ const deleteDatabase = async (databaseId) => {
     return response;
   } catch (error) {
     console.error(`Error deleting database ID ${databaseId}:`, error);
-    throw error; // Re-throw the error for handling upstream
+    throw error;
   }
 };
 
@@ -119,7 +119,7 @@ const updateEnvVariable = async (serviceId, envKey, envValue) => {
       `Error updating environment variable for service ID ${serviceId}:`,
       error
     );
-    throw error; // Re-throw the error for handling upstream
+    throw error;
   }
 };
 
@@ -137,7 +137,7 @@ const deployService = async (serviceId) => {
     return response.data;
   } catch (error) {
     console.error(`Error deploying service ID ${serviceId}:`, error);
-    throw error; // Re-throw the error for handling upstream
+    throw error;
   }
 };
 
@@ -156,7 +156,7 @@ const rebuildDatabase = async () => {
       const deleteDb = await deleteDatabase(database.id);
       if (deleteDb.status !== 204) {
         console.error("Failed to delete existing database.");
-        return; // Exit if deletion fails
+        return;
       }
     }
 
@@ -181,7 +181,7 @@ const rebuildDatabase = async () => {
 
 const runScript = async () => {
   const chalk = (await import('chalk')).default;
-  console.log(chalk.bold.blue("||| Render Database Rebuilder |||\n"));
+  console.log(chalk.bold.cyan("||| Render Database Rebuilder |||\n"));
   
   let missing = [];
 
@@ -200,7 +200,7 @@ const runScript = async () => {
 
   if (missing.length) {
     console.log(chalk.yellow(`The following variables still don't have a value: ${missing.join(", ")}`));
-    console.log(chalk.yellow("Please add them for the script to run"));
+    console.log(chalk.yellow("Please add them for the script to run..."));
     return;
   }
 
