@@ -2,10 +2,10 @@ require("dotenv").config();
 const axios = require("axios");
 
 const baseUrl = "https://api.render.com/v1";
-const databaseName = process.env.DATABASE_NAME; // name of your new database
-const databaseKey = process.env.DATABASE_ENV_KEY; // env database key name
-const region = process.env.REGION; // region that your projects are linked to
-const key = process.env.RENDER_API_KEY; //api key from render
+const databaseName = process.env.DATABASE_NAME; // name of new render database
+const databaseKey = process.env.DATABASE_ENV_KEY; // name of key for render database
+const region = process.env.REGION; // region you use for your applications
+const key = process.env.RENDER_API_KEY; // render API key
 
 const options = {
   headers: {
