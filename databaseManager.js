@@ -17,7 +17,6 @@ const options = {
 
 // Owner --------------------------------------------------------------------------------------------
 
-
 const fetchOwner = async () => {
   try {
     const response = await axios.get(`${baseUrl}/owners?limit=1`, options);
@@ -26,8 +25,7 @@ const fetchOwner = async () => {
       return owner;
     }
   } catch (error) {
-    console.error("Error fetching owner:", error);
-    throw error;
+    handleError(error, "fetchOwner");
   }
 };
 
@@ -42,8 +40,7 @@ const fetchServices = async () => {
 
     return services.filter((service) => service !== null);
   } catch (error) {
-    console.error("Error fetching services:", error);
-    throw error;
+    handleError(error, "fetchServices");
   }
 };
 
@@ -60,8 +57,7 @@ const deployService = async (serviceId) => {
     );
     return response.data;
   } catch (error) {
-    console.error(`Error deploying service ID ${serviceId}:`, error);
-    throw error;
+    handleError(error, "deployServices");
   }
 };
 
@@ -72,8 +68,7 @@ const fetchDatabase = async () => {
     const response = await axios.get(`${baseUrl}/postgres`, options);
     return response.data.length ? response.data[0].postgres : {};
   } catch (error) {
-    console.error("Error fetching database:", error);
-    throw error;
+    handleError(error, "fetchDatabase");
   }
 };
 
@@ -85,11 +80,7 @@ const fetchConnectionInfo = async (databaseId) => {
     );
     return response.data;
   } catch (error) {
-    console.error(
-      `Error fetching details for database ID ${databaseId}:`,
-      error
-    );
-    throw error;
+    handleError(error, "fetchConnectionInfo");
   }
 };
 
@@ -100,15 +91,14 @@ const createDatabase = async (ownerId) => {
     version: "16",
     name: databaseName,
     ownerId,
-    region
+    region,
   };
 
   try {
     const response = await axios.post(`${baseUrl}/postgres`, body, options);
     return response.data;
   } catch (error) {
-    console.error("Error creating database:", error);
-    throw error;
+    handleError(error, "createDatabase");
   }
 };
 
@@ -120,8 +110,7 @@ const deleteDatabase = async (databaseId) => {
     );
     return response;
   } catch (error) {
-    console.error(`Error deleting database ID ${databaseId}:`, error);
-    throw error;
+    handleError(error, "deleteDatabase");
   }
 };
 
@@ -156,9 +145,10 @@ const rebuildDatabase = async () => {
       );
       await deployService(service.id);
     }
+
     console.log("done!");
   } catch (error) {
-    console.error("Error during database rebuild:", error);
+    handleError(error, "rebuildDatabase");
   }
 };
 
@@ -177,14 +167,9 @@ const updateEnvVariable = async (serviceId, envKey, envValue) => {
     );
     return response.data;
   } catch (error) {
-    console.error(
-      `Error updating environment variable for service ID ${serviceId}:`,
-      error
-    );
-    throw error;
+    handleError(error, "updateEnvVariable");
   }
 };
-
 // Helpers --------------------------------------------------------------------------------------------
 
 const isEmpty = (obj) => {
@@ -225,6 +210,24 @@ const validateVariables = async () => {
 
   console.log(chalk.green("All variables are set. Rebuilding database...\n"));
   return true;
+};
+
+const handleError = (error, functionName) => {
+  const statusCode = error.response?.status;
+  const errorMessage =
+    error.response?.data?.message || "An unknown error occurred";
+
+  console.error(
+    `Error in ${functionName}: ${errorMessage} ${
+      !statusCode ? "" : `Status code: ${statusCode}`
+    }`
+  );
+
+  throw new Error(
+    `Error in ${functionName}: ${errorMessage} ${
+      !statusCode ? "" : `Status code: ${statusCode}`
+    }`
+  );
 };
 
 module.exports = {
