@@ -26,7 +26,7 @@ const showMenu = async () => {
   rl.question(chalk.yellow("Choose an option: "), async (answer) => {
     switch (answer) {
       case "1":
-        console.log(chalk.green("\nRunning Rebuild Script..."));
+        console.log(chalk.green("\nRebuilding Database..."));
         await rebuildDatabase();
         showMenu();
         break;
@@ -45,7 +45,7 @@ const showMenu = async () => {
         showMenu();
         break;
       case "4":
-        console.log(chalk.green("Fetching Service Details..."));
+        console.log(chalk.green("Fetching Owner Details..."));
         let owner = await fetchOwner();
         console.log(chalk.cyan.bold("🖥️  Owner: "), owner);
         showMenu();
