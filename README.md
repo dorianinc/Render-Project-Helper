@@ -24,9 +24,9 @@ A simple script to help keep Render projects up and running made using Render's 
 
 8. Add the following environment variables to .env:  
    ```plaintext
-   API_KEY=your_api_key_here         # Your Render API key
+   RENDER_API_KEY=your_api_key_here         # Your Render API key
    DATABASE_NAME=your_database_name   # The name of your new database
-   DATABASE_KEY=your_database_key      # The key for accessing your database
+   DATABASE_ENV_KEY=your_database_key      # The key for accessing your database
    REGION=your_region_here             # The region you use for your applications (e.g., oregon)  
 9. Run the script:  
    `npm start`
