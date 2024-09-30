@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const readline = require("readline");
 const {
   fetchServices,
@@ -7,6 +9,8 @@ const {
   rebuildDatabase,
 } = require("./databaseManager");
 
+const c = require('ansi-colors'); // Import ansi-colors
+
 // User Interface --------------------------------------------------------------------------------------------
 
 const rl = readline.createInterface({
@@ -15,55 +19,51 @@ const rl = readline.createInterface({
 });
 
 const showMenu = async () => {
-  const chalk = (await import("chalk")).default;
+  console.log(c.cyan.bold("\n1. Rebuild Database"));
+  console.log(c.cyan.bold("2. View Database Details"));
+  console.log(c.cyan.bold("3. View Service Details"));
+  console.log(c.cyan.bold("4. View Owner Details"));
+  console.log(c.cyan.bold("5. Exit"));
 
-  console.log(chalk.cyan.bold("\n1. Rebuild Database"));
-  console.log(chalk.cyan.bold("2. View Database Details"));
-  console.log(chalk.cyan.bold("3. View Service Details"));
-  console.log(chalk.cyan.bold("4. View Owner Details"));
-  console.log(chalk.cyan.bold("5. Exit"));
-
-  rl.question(chalk.yellow("Choose an option: "), async (answer) => {
+  rl.question(c.yellow("Choose an option: "), async (answer) => {
     switch (answer) {
       case "1":
-        console.log(chalk.green("\nRebuilding Database..."));
+        console.log(c.green("\nRebuilding Database..."));
         await rebuildDatabase();
         showMenu();
         break;
       case "2":
-        console.log(chalk.green("Fetching Database Details..."));
+        console.log(c.green("Fetching Database Details..."));
         let database = await fetchDatabase();
         let connectionInfo = await fetchConnectionInfo(database.id);
-        console.log(chalk.cyan.bold("🖥️  Database: "), database);
-        console.log(chalk.cyan.bold("🖥️  Connection Info: "), connectionInfo);
+        console.log(c.cyan.bold("🖥️  Database: "), database);
+        console.log(c.cyan.bold("🖥️  Connection Info: "), connectionInfo);
         showMenu();
         break;
       case "3":
-        console.log(chalk.green("Fetching Service Details..."));
+        console.log(c.green("Fetching Service Details..."));
         let services = await fetchServices();
-        console.log(chalk.cyan.bold("🖥️  Services: "), services);
+        console.log(c.cyan.bold("🖥️  Services: "), services);
         showMenu();
         break;
       case "4":
-        console.log(chalk.green("Fetching Owner Details..."));
+        console.log(c.green("Fetching Owner Details..."));
         let owner = await fetchOwner();
-        console.log(chalk.cyan.bold("🖥️  Owner: "), owner);
+        console.log(c.cyan.bold("🖥️  Owner: "), owner);
         showMenu();
         break;
       case "5":
         rl.close();
         break;
       default:
-        console.log(chalk.red("Invalid option. Please try again."));
+        console.log(c.red("Invalid option. Please try again."));
         rl.close();
     }
   });
 };
 
-rl.on("close", async () => {
-  const chalk = (await import("chalk")).default;
-
-  console.log(chalk.bgRed.white.bold("\nExiting program..."));
+rl.on("close", () => {
+  console.log(c.bgRed.white.bold("\nExiting program..."));
   process.exit(0);
 });
 

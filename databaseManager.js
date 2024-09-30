@@ -1,5 +1,8 @@
+#!/usr/bin/env node
+
 require("dotenv").config();
 const axios = require("axios");
+const c = require("ansi-colors");
 
 const baseUrl = "https://api.render.com/v1";
 const databaseName = process.env.DATABASE_NAME; // name of new render database
@@ -44,14 +47,15 @@ const fetchServices = async () => {
   }
 };
 
-const deployService = async (serviceId) => {
+const deployService = async (service) => {
+  console.log(`Deploying ${service.name}`);
   const body = {
     clearCache: "do_not_clear",
   };
 
   try {
     const response = await axios.post(
-      `${baseUrl}/services/${serviceId}/deploys`,
+      `${baseUrl}/services/${service.id}/deploys`,
       body,
       options
     );
@@ -85,6 +89,7 @@ const fetchConnectionInfo = async (databaseId) => {
 };
 
 const createDatabase = async (ownerId) => {
+  console.log("Creating new database");
   const body = {
     enableHighAvailability: false,
     plan: "free",
@@ -103,6 +108,7 @@ const createDatabase = async (ownerId) => {
 };
 
 const deleteDatabase = async (databaseId) => {
+  console.log("Deleting existing database");
   try {
     const response = await axios.delete(
       `${baseUrl}/postgres/${databaseId}`,
@@ -118,7 +124,6 @@ const rebuildDatabase = async () => {
   const isValid = await validateVariables();
   if (!isValid) return;
 
-  console.log("Rebuilding database...");
   try {
     const owner = await fetchOwner();
     const services = await fetchServices();
@@ -127,7 +132,7 @@ const rebuildDatabase = async () => {
     if (!isEmpty(database)) {
       const deleteDb = await deleteDatabase(database.id);
       if (deleteDb.status !== 204) {
-        console.error("Failed to delete existing database.");
+        console.error(c.red("Failed to delete existing database."));
         return;
       }
     }
@@ -137,16 +142,28 @@ const rebuildDatabase = async () => {
     const { internalConnectionString } = await fetchConnectionInfo(id);
     newDb.internalDatabaseUrl = internalConnectionString;
 
-    for (const service of services) {
-      await updateEnvVariable(
-        service.id,
-        databaseKey,
-        newDb.internalDatabaseUrl
-      );
-      await deployService(service.id);
+    let dbStatus = "creating";
+
+    console.log("Waiting for database...");
+    while (dbStatus === "creating") {
+      dbStatus = await checkDbStatus();
     }
 
-    console.log("done!");
+    if (dbStatus === "available") {
+      console.log(c.green("Database is available"));
+      console.log("Updating Services...");
+      for (const service of services) {
+        await updateEnvVariable(
+          service.id,
+          databaseKey,
+          newDb.internalDatabaseUrl
+        );
+        await deployService(service);
+      }
+      console.log(c.green("Done!"));
+    } else {
+      console.log(c.red("Something went wrong with your database"));
+    }
   } catch (error) {
     handleError(error, "rebuildDatabase");
   }
@@ -177,39 +194,47 @@ const isEmpty = (obj) => {
 };
 
 const validateVariables = async () => {
-  const chalk = (await import("chalk")).default;
   let missing = [];
 
   if (!databaseName) {
-    missing.push(chalk.red("databaseName"));
+    missing.push(c.red("databaseName"));
   }
   if (!databaseKey) {
-    missing.push(chalk.red("databaseKey"));
+    missing.push(c.red("databaseKey"));
   }
   if (!region) {
-    missing.push(chalk.red("region"));
+    missing.push(c.red("region"));
   }
   if (!baseUrl) {
-    missing.push(chalk.red("baseUrl"));
+    missing.push(c.red("baseUrl"));
   }
   if (!key) {
-    missing.push(chalk.red("key"));
+    missing.push(c.red("key"));
   }
 
   if (missing.length) {
     console.log(
-      chalk.yellow(
+      c.yellow(
         `The following variables still don't have a value: ${missing.join(
           ", "
         )}`
       )
     );
-    console.log(chalk.yellow("Please add them for the script to run..."));
+    console.log(c.yellow("Please add them for the script to run..."));
     return false;
   }
-
-  console.log(chalk.green("All variables are set. Rebuilding database...\n"));
   return true;
+};
+
+const checkDbStatus = async () => {
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+    const { status } = await fetchDatabase();
+    return status;
+  } catch (error) {
+    console.error(c.red("Failed checking database status: "), error.message);
+    return false;
+  }
 };
 
 const handleError = (error, functionName) => {
@@ -218,9 +243,11 @@ const handleError = (error, functionName) => {
     error.response?.data?.message || "An unknown error occurred";
 
   console.error(
-    `Error in ${functionName}: ${errorMessage} ${
-      !statusCode ? "" : `Status code: ${statusCode}`
-    }`
+    c.red(
+      `Error in ${functionName}: ${errorMessage} ${
+        !statusCode ? "" : `Status code: ${statusCode}`
+      }`
+    )
   );
 
   throw new Error(
