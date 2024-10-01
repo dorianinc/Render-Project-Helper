@@ -40,12 +40,12 @@ const fetchServices = async () => {
     const services = response.data
       .filter((item) => item.service.type === "web_service")
       .map((item) => item.service);
-
     return services.filter((service) => service !== null);
   } catch (error) {
     handleError(error, "fetchServices");
   }
 };
+
 
 const deployService = async (service) => {
   console.log(`Deploying ${service.name}`);
@@ -100,7 +100,6 @@ const fetchDatabase = async (databaseId) => {
   }
 };
 
-// Fetch connection info function
 const fetchConnectionInfo = async (databaseId) => {
   try {
     const response = await axios.get(
@@ -110,7 +109,7 @@ const fetchConnectionInfo = async (databaseId) => {
     return response.data;
   } catch (error) {
     handleError(error, "fetchConnectionInfo");
-    return null; // Return null if there's an error to maintain consistency
+    return null;
   }
 };
 
@@ -215,10 +214,6 @@ const updateEnvVariable = async (serviceId, envKey, envValue) => {
 };
 // Helpers --------------------------------------------------------------------------------------------
 
-const isEmpty = (obj) => {
-  return Object.values(obj).length === 0;
-};
-
 const validateVariables = async () => {
   let missing = [];
 
@@ -266,11 +261,25 @@ const checkDbStatus = async () => {
 const checkServiceStatus = async (serviceId) => {
   try {
     await new Promise((resolve) => setTimeout(resolve, 10000));
-    const { status } = await fetchDatabase();
-    return status;
+    const response = await axios.get(
+      `${baseUrl}/services/${serviceId}/events?limit=10`,
+      options
+    );
+    const event = response.data.filter(
+      (item) => item.event.type === "deploy_ended"
+    );
+    const serviceStatus = event.details.status;
+
+    switch (serviceStatus) {
+      case 2:
+        return "deployed";
+      case 3:
+        return "not deployed";
+      default:
+        return "error";
+    }
   } catch (error) {
-    console.error(c.red("Failed checking database status: "), error.message);
-    return false;
+    handleError(error, "fetchServiceEvents");
   }
 };
 

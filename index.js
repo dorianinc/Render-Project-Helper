@@ -4,7 +4,6 @@ const readline = require("readline");
 const {
   fetchServices,
   fetchDatabase,
-  fetchConnectionInfo,
   fetchOwner,
   rebuildDatabase,
 } = require("./databaseManager");
