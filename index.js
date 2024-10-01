@@ -35,9 +35,7 @@ const showMenu = async () => {
       case "2":
         console.log(c.green("Fetching Database Details..."));
         let database = await fetchDatabase();
-        let connectionInfo = await fetchConnectionInfo(database.id);
         console.log(c.cyan.bold("🖥️  Database: "), database);
-        console.log(c.cyan.bold("🖥️  Connection Info: "), connectionInfo);
         showMenu();
         break;
       case "3":

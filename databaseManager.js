@@ -67,15 +67,40 @@ const deployService = async (service) => {
 
 // Database --------------------------------------------------------------------------------------------
 
-const fetchDatabase = async () => {
+const fetchDatabase = async (databaseId) => {
   try {
-    const response = await axios.get(`${baseUrl}/postgres`, options);
-    return response.data.length ? response.data[0].postgres : {};
+    const response = databaseId
+      ? await axios.get(`${baseUrl}/postgres/${databaseId}`, options)
+      : await axios.get(`${baseUrl}/postgres`, options);
+
+    if (databaseId && response.data) {
+      const connectionInfo = await fetchConnectionInfo(databaseId);
+      return {
+        ...response.data,
+        connectionInfo: connectionInfo || null,
+      };
+    }
+
+    const freeDatabases = response.data
+      .filter((db) => db.postgres.plan === "free")
+      .map((db) => db.postgres);
+
+    if (freeDatabases.length > 0) {
+      const connectionInfo = await fetchConnectionInfo(freeDatabases[0].id);
+      return {
+        ...freeDatabases[0],
+        connectionInfo: connectionInfo || null,
+      };
+    }
+
+    return null;
   } catch (error) {
     handleError(error, "fetchDatabase");
+    return null;
   }
 };
 
+// Fetch connection info function
 const fetchConnectionInfo = async (databaseId) => {
   try {
     const response = await axios.get(
@@ -85,6 +110,7 @@ const fetchConnectionInfo = async (databaseId) => {
     return response.data;
   } catch (error) {
     handleError(error, "fetchConnectionInfo");
+    return null; // Return null if there's an error to maintain consistency
   }
 };
 
@@ -129,7 +155,7 @@ const rebuildDatabase = async () => {
     const services = await fetchServices();
     const database = await fetchDatabase();
 
-    if (!isEmpty(database)) {
+    if (database) {
       const deleteDb = await deleteDatabase(database.id);
       if (deleteDb.status !== 204) {
         console.error(c.red("Failed to delete existing database."));
@@ -227,6 +253,17 @@ const validateVariables = async () => {
 };
 
 const checkDbStatus = async () => {
+  try {
+    await new Promise((resolve) => setTimeout(resolve, 10000));
+    const { status } = await fetchDatabase();
+    return status;
+  } catch (error) {
+    console.error(c.red("Failed checking database status: "), error.message);
+    return false;
+  }
+};
+
+const checkServiceStatus = async (serviceId) => {
   try {
     await new Promise((resolve) => setTimeout(resolve, 10000));
     const { status } = await fetchDatabase();
