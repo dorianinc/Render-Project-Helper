@@ -46,7 +46,6 @@ const fetchServices = async () => {
   }
 };
 
-
 const deployService = async (service) => {
   console.log(`Deploying ${service.name}`);
   const body = {
@@ -259,29 +258,48 @@ const checkDbStatus = async () => {
 };
 
 const checkServiceStatus = async (serviceId) => {
-  try {
-    await new Promise((resolve) => setTimeout(resolve, 10000));
-    const response = await axios.get(
-      `${baseUrl}/services/${serviceId}/events?limit=10`,
-      options
-    );
-    const event = response.data.filter(
-      (item) => item.event.type === "deploy_ended"
-    );
-    const serviceStatus = event.details.status;
+  serviceId = "srv-cihg1d2ip7vpelu8jr7g";
 
-    switch (serviceStatus) {
-      case 2:
-        return "deployed";
-      case 3:
-        return "not deployed";
-      default:
-        return "error";
+  try {
+    let eventType = "deploy_started";
+    let serviceStatus;
+
+    // Wait for 1 second before starting the checks
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Poll for the service events until deploy_ended is received
+    while (eventType !== "deploy_ended") {
+      const response = await axios.get(
+        `${baseUrl}/services/${serviceId}/events?limit=10`,
+        options
+      );
+
+      const event = response.data[0].event;
+      eventType = event.type;
+
+      // Capture the service status when deploy_ended event is detected
+      if (eventType === "deploy_ended") {
+        serviceStatus = event.details.status;
+      }
     }
+
+    // Determine and log the service status
+    if (serviceStatus === 2) {
+      console.log("Service is deployed");
+      return "deployed";
+    } else if (serviceStatus === 3) {
+      console.log("Service is not deployed");
+      return "not deployed";
+    } else {
+      console.log("Service has an error");
+      return "error";
+    }
+
   } catch (error) {
     handleError(error, "fetchServiceEvents");
   }
 };
+
 
 const handleError = (error, functionName) => {
   const statusCode = error.response?.status;
@@ -302,6 +320,8 @@ const handleError = (error, functionName) => {
     }`
   );
 };
+
+checkServiceStatus();
 
 module.exports = {
   fetchServices,
