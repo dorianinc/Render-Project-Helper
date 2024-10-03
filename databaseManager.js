@@ -168,7 +168,9 @@ const rebuildDatabase = async () => {
 
     let dbStatus = "creating";
 
-    console.log(c.orange("Waiting for database..."));
+    // console.log("Waiting for database...");
+    console.log(c.yellow("Waiting for database..."));
+
     while (dbStatus === "creating") {
       dbStatus = await checkDbStatus();
     }
@@ -185,15 +187,10 @@ const rebuildDatabase = async () => {
         await deployService(service);
       }
 
-    console.log(c.orange("Waiting for service status(es)..."));
-    console.log(c.orange("This can take a while, it is now safe to close the script"));
+      console.log(c.yellow("Waiting for service status(es)..."));
+      console.log(c.yellow("You can close the program now if you like"));
 
-
-      const potato = await Promise.all(
-        services.map((service) => checkServiceStatus(service))
-      );
-      console.log("🖥️  potato: ", potato);
-
+      await Promise.all(services.map((service) => checkServiceStatus(service)));
       console.log(c.green("Done!"));
     } else {
       console.log(c.red("Something went wrong with your database"));
@@ -283,6 +280,7 @@ const checkServiceStatus = async (service) => {
         const eventType = event.type;
         const statusCode = event.details.status;
         if (eventType === "deploy_ended") {
+          // console.log(`🖥️  status code for ${service.name}: `, serviceCode);
           switch (statusCode) {
             case 2:
               serviceStatus = "deployed";
@@ -306,7 +304,7 @@ const checkServiceStatus = async (service) => {
       resolve(serviceStatus);
     } catch (error) {
       handleError(error, "fetchServiceEvents");
-      resolve("error"); // Optionally resolve with an error status
+      resolve("error");
     }
   });
 };
@@ -330,8 +328,6 @@ const handleError = (error, functionName) => {
     }`
   );
 };
-
-// checkServiceStatus();
 
 module.exports = {
   fetchServices,
