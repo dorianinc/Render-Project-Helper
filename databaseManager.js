@@ -168,7 +168,6 @@ const rebuildDatabase = async () => {
 
     let dbStatus = "creating";
 
-    // console.log("Waiting for database...");
     console.log(c.yellow("Waiting for database..."));
 
     while (dbStatus === "creating") {
@@ -177,7 +176,7 @@ const rebuildDatabase = async () => {
 
     if (dbStatus === "available") {
       console.log(c.green("Database is available"));
-      console.log("Updating Services...");
+      console.log("Updating Services");
       for (const service of services) {
         await updateEnvVariable(
           service.id,
@@ -247,7 +246,7 @@ const validateVariables = async () => {
         )}`
       )
     );
-    console.log(c.yellow("Please add them for the script to run..."));
+    console.log(c.yellow("Please add them for the script to run"));
     return false;
   }
   return true;
