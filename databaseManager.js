@@ -7,7 +7,7 @@ const c = require("ansi-colors");
 const baseUrl = "https://api.render.com/v1";
 const databaseName = process.env.DATABASE_NAME; // name of new render database
 const databaseKey = process.env.DATABASE_ENV_KEY; // name of key for render database
-const region = process.env.REGION; // region you use for your applications
+const region = process.env.REGION.toLowerCase(); // region you use for your applications
 const key = process.env.RENDER_API_KEY; // render API key
 
 const options = {
@@ -168,7 +168,7 @@ const rebuildDatabase = async () => {
 
     let dbStatus = "creating";
 
-    console.log("Waiting for database...");
+    console.log(c.orange("Waiting for database..."));
     while (dbStatus === "creating") {
       dbStatus = await checkDbStatus();
     }
@@ -184,6 +184,16 @@ const rebuildDatabase = async () => {
         );
         await deployService(service);
       }
+
+    console.log(c.orange("Waiting for service status(es)..."));
+    console.log(c.orange("This can take a while, it is now safe to close the script"));
+
+
+      const potato = await Promise.all(
+        services.map((service) => checkServiceStatus(service))
+      );
+      console.log("🖥️  potato: ", potato);
+
       console.log(c.green("Done!"));
     } else {
       console.log(c.red("Something went wrong with your database"));
@@ -248,7 +258,7 @@ const validateVariables = async () => {
 
 const checkDbStatus = async () => {
   try {
-    await new Promise((resolve) => setTimeout(resolve, 10000));
+    await new Promise(async (resolve) => setTimeout(resolve, 10000));
     const { status } = await fetchDatabase();
     return status;
   } catch (error) {
@@ -257,49 +267,49 @@ const checkDbStatus = async () => {
   }
 };
 
-const checkServiceStatus = async (serviceId) => {
-  serviceId = "srv-cihg1d2ip7vpelu8jr7g";
-
-  try {
-    let eventType = "deploy_started";
-    let serviceStatus;
-
-    // Wait for 1 second before starting the checks
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // Poll for the service events until deploy_ended is received
-    while (eventType !== "deploy_ended") {
-      const response = await axios.get(
-        `${baseUrl}/services/${serviceId}/events?limit=10`,
-        options
-      );
-
-      const event = response.data[0].event;
-      eventType = event.type;
-
-      // Capture the service status when deploy_ended event is detected
-      if (eventType === "deploy_ended") {
-        serviceStatus = event.details.status;
+const checkServiceStatus = async (service) => {
+  return new Promise(async (resolve) => {
+    try {
+      let serviceStatus = "deploying";
+      while (serviceStatus === "deploying") {
+        await new Promise((timeoutResolve) =>
+          setTimeout(timeoutResolve, 10000)
+        );
+        const response = await axios.get(
+          `${baseUrl}/services/${service.id}/events?limit=10`,
+          options
+        );
+        const event = response.data[0].event;
+        const eventType = event.type;
+        const statusCode = event.details.status;
+        if (eventType === "deploy_ended") {
+          switch (statusCode) {
+            case 2:
+              serviceStatus = "deployed";
+              break;
+            case 3:
+              serviceStatus = "not deployed";
+              break;
+            default:
+              serviceStatus = "error";
+          }
+        }
       }
-    }
 
-    // Determine and log the service status
-    if (serviceStatus === 2) {
-      console.log("Service is deployed");
-      return "deployed";
-    } else if (serviceStatus === 3) {
-      console.log("Service is not deployed");
-      return "not deployed";
-    } else {
-      console.log("Service has an error");
-      return "error";
+      if (serviceStatus === "deployed") {
+        console.log(c.green(`${service.name} is ${serviceStatus}`));
+      } else if (serviceStatus === "not deployed") {
+        console.log(c.red(`${service.name} is ${serviceStatus}`));
+      } else {
+        console.log(c.red(`Error deploying ${service.name}`));
+      }
+      resolve(serviceStatus);
+    } catch (error) {
+      handleError(error, "fetchServiceEvents");
+      resolve("error"); // Optionally resolve with an error status
     }
-
-  } catch (error) {
-    handleError(error, "fetchServiceEvents");
-  }
+  });
 };
-
 
 const handleError = (error, functionName) => {
   const statusCode = error.response?.status;
@@ -321,7 +331,7 @@ const handleError = (error, functionName) => {
   );
 };
 
-checkServiceStatus();
+// checkServiceStatus();
 
 module.exports = {
   fetchServices,
